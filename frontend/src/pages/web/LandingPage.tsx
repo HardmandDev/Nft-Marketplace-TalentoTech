@@ -6,22 +6,26 @@ import ConstantsApp from "@/constants/ConstantsApp";
 
 const LandingPage = () => {
     const [walletAddress, setWalletAddress] = useState<string | null>(null);
-    const navigate = useNavigate(); // Para redirigir cuando el usuario conecta su wallet
+    const navigate = useNavigate();
 
-    // Este useEffect se podría simplificar si se maneja el estado de la wallet en el Navbar
     useEffect(() => {
         const savedWalletAddress = localStorage.getItem(ConstantsApp.LOCAL_STORAGE_WALLET_ADDRESS);
         if (savedWalletAddress) {
-            setWalletAddress(savedWalletAddress); // Recuperar la wallet de localStorage (si ya está conectada)
+            setWalletAddress(savedWalletAddress);
         }
     }, []);
 
-    // Si el usuario está conectado, redirigir automáticamente al Dashboard
     useEffect(() => {
         if (walletAddress) {
-            navigate(ConstantRoutes.DASHBOARD); // Redirige automáticamente al dashboard
+            navigate(ConstantRoutes.DASHBOARD);
         }
     }, [walletAddress, navigate]);
+
+    const handleConnectWallet = () => {
+        const connectedWalletAddress = "0x1234567890abcdef"; // Simula la dirección conectada
+        localStorage.setItem(ConstantsApp.LOCAL_STORAGE_WALLET_ADDRESS, connectedWalletAddress);
+        setWalletAddress(connectedWalletAddress); // Actualizar el estado
+    };
 
     return (
         <div style={{ textAlign: "center", marginTop: "50px" }}>
@@ -32,7 +36,7 @@ const LandingPage = () => {
                     <Button
                         color="primary"
                         variant="flat"
-                        onClick={() => navigate(ConstantRoutes.DASHBOARD)} // Redirigir al Dashboard si el usuario está conectado
+                        onClick={handleConnectWallet}
                     >
                         Conectar Wallet
                     </Button>
