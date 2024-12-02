@@ -1,86 +1,65 @@
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button } from "@nextui-org/react";
-import { useState, useEffect } from "react";
-import { connectWallet, detectWallet, getBalance } from "@/utils/wallet"; // Asegúrate de tener estas funciones ya definidas
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Button, Link } from "@nextui-org/react";
+import { useAccount, useDisconnect, useConnect } from 'wagmi';
+import { useNavigate } from 'react-router-dom';
+import ConstantRoutes from '@/constants/ConstantsRoutes'
 
-export default function NavBar() {
-    const [walletAddress, setWalletAddress] = useState<string | null>(null);
-    const [balance, setBalance] = useState<string>("");
+const NavBar = () => {
+    const { isConnected, address } = useAccount(); // Estado de conexión de la wallet
+    const { disconnect } = useDisconnect();
+    const { connectors, connect } = useConnect();  // Para conectar la wallet
+    const navigate = useNavigate();
 
-    // Detectar wallet al cargar la página
-    useEffect(() => {
-        const checkWallet = async () => {
-            const address = await detectWallet();
-            if (address) {
-                setWalletAddress(address);
-                const userBalance = await getBalance(address);
-                setBalance(userBalance);
-            }
-        };
-        checkWallet();
-    }, []);
-
-    // Escuchar eventos de MetaMask
-    useEffect(() => {
-        if (typeof window.ethereum !== "undefined") {
-            window.ethereum.on("accountsChanged", (accounts: string[]) => {
-                if (accounts.length > 0) {
-                    setWalletAddress(accounts[0]);
-                    getBalance(accounts[0]).then(setBalance);
-                } else {
-                    disconnectWallet(); // Desconectar wallet si no hay cuentas
-                }
-            });
-
-            window.ethereum.on("chainChanged", (chainId: string) => {
-                console.log("Red cambiada a:", chainId);
-                window.location.reload(); // Recargar para manejar cambios de red
-            });
-        }
-    }, []);
-
-    // Conectar wallet
-    const handleConnectWallet = async () => {
-        const address = await connectWallet();
-        if (address) {
-            setWalletAddress(address);
-            const userBalance = await getBalance(address);
-            setBalance(userBalance);
-        }
-    };
-
-    // Desconectar wallet
-    const disconnectWallet = () => {
-        setWalletAddress(null);
-        setBalance("");
+    // Función para desconectar y redirigir al inicio
+    const handleDisconnect = () => {
+        disconnect();  // Desconectar wallet
+        navigate(ConstantRoutes.HOME);  // Redirigir al inicio
+        console.log('Desconectado')
     };
 
     return (
         <Navbar>
             <NavbarBrand>
-                <p className="font-bold text-inherit">Nft Marketplace Talento Tech</p>
+                <Link href={ConstantRoutes.HOME} className="font-bold text-inherit">NM TT</Link>
             </NavbarBrand>
             <NavbarContent justify="end">
-                {/* Mostrar el botón de conectar wallet si no está conectado */}
-                {!walletAddress ? (
-                    <NavbarItem>
-                        <Button onClick={handleConnectWallet} color="primary" variant="flat">
-                            Conectar Wallet
-                        </Button>
-                    </NavbarItem>
-                ) : (
+                {/* Mostrar las opciones de menú solo si el usuario está conectado */}
+                {isConnected ? (
                     <>
-                        {/* Si está conectado, mostrar la wallet y el balance */}
                         <NavbarItem>
-                            <p style={{ margin: 0, padding: 0, color: "white" }}>
-                                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-                            </p>
-                            <p style={{ margin: 0, padding: 0, color: "white" }}>
-                                Balance: {balance} ETH
+                            <Link href={ConstantRoutes.DASHBOARD}>Dashboard</Link>
+                        </NavbarItem>
+                        <NavbarItem>
+                            <Link href={ConstantRoutes.MARKETPLACE}>Marketplace</Link>
+                        </NavbarItem>
+                        <NavbarItem>
+                            <Link href={ConstantRoutes.MY_NFTS}>Mis NFTs</Link>
+                        </NavbarItem>
+                        <NavbarItem>
+                            <Link href={ConstantRoutes.SETTINGS}>Ajustes</Link>
+                        </NavbarItem>
+                        <NavbarItem>
+                            <p style={{ color: "white", fontSize: "14px" }}>
+                                {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "No conectado"}
                             </p>
                         </NavbarItem>
                         <NavbarItem>
-                            <Button onClick={disconnectWallet} color="secondary" variant="flat">
+                            <Button onClick={handleDisconnect} color="secondary" variant="flat">
                                 Desconectar
+                            </Button>
+                        </NavbarItem>
+                    </>
+                ) : (
+                    <>
+                        <NavbarItem>
+                            <Link href={ConstantRoutes.HOME}>Home</Link>
+                        </NavbarItem>
+                        <NavbarItem>
+                            <Button
+                                color="primary"
+                                variant="flat"
+                                onClick={() => connect({ connector: connectors[0] })}  // Conectar la primera wallet
+                            >
+                                Conectar Wallet
                             </Button>
                         </NavbarItem>
                     </>
@@ -88,4 +67,6 @@ export default function NavBar() {
             </NavbarContent>
         </Navbar>
     );
-}
+};
+
+export default NavBar;

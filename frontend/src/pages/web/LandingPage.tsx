@@ -1,50 +1,32 @@
-import { useEffect, useState } from "react";
 import { Button } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
-import ConstantRoutes from "@/constants/ConstantsRoutes";
-import ConstantsApp from "@/constants/ConstantsApp";
+import { useAccount, useConnect } from 'wagmi';
 
 const LandingPage = () => {
-    const [walletAddress, setWalletAddress] = useState<string | null>(null);
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const savedWalletAddress = localStorage.getItem(ConstantsApp.LOCAL_STORAGE_WALLET_ADDRESS);
-        if (savedWalletAddress) {
-            setWalletAddress(savedWalletAddress);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (walletAddress) {
-            navigate(ConstantRoutes.DASHBOARD);
-        }
-    }, [walletAddress, navigate]);
-
-    const handleConnectWallet = () => {
-        const connectedWalletAddress = "0x1234567890abcdef"; // Simula la dirección conectada
-        localStorage.setItem(ConstantsApp.LOCAL_STORAGE_WALLET_ADDRESS, connectedWalletAddress);
-        setWalletAddress(connectedWalletAddress); // Actualizar el estado
-    };
+    const { isConnected } = useAccount();  // Estado de conexión de la wallet
+    const { connectors, connect, error } = useConnect();  // Para conectar la wallet
 
     return (
         <div style={{ textAlign: "center", marginTop: "50px" }}>
             <h1>Bienvenido a nuestro Marketplace de NFTs</h1>
             <p>Conecta tu wallet para empezar a explorar, comprar y vender NFTs exclusivos.</p>
-            {!walletAddress ? (
+
+            {!isConnected ? (
                 <>
                     <Button
                         color="primary"
                         variant="flat"
-                        onClick={handleConnectWallet}
+                        onClick={() => connect({ connector: connectors[0] })}  // Conectar la primera wallet
                     >
                         Conectar Wallet
                     </Button>
                     <p>¡Haz clic en el botón para conectar tu wallet y comenzar!</p>
                 </>
             ) : (
-                <p>¡Tu wallet está conectada! Redirigiendo a tu Dashboard...</p>
+                <p>¡Tu wallet está conectada!</p>
             )}
+
+            {/* Mostrar posibles errores de conexión */}
+            {error && <div>{error.message}</div>}
         </div>
     );
 };

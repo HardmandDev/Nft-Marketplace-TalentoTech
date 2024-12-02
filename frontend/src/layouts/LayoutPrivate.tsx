@@ -1,9 +1,15 @@
-import React from 'react'
+import { Outlet } from 'react-router-dom'
+import NavBar from '@/components/NavBar'
 
-function LayoutPrivate() {
-  return (
-    <div>LayoutPrivate</div>
-  )
+const LayoutPublic = () => {
+    return (
+        <div>
+            <NavBar />
+            <main className='container'>
+                <Outlet />
+            </main>
+        </div>
+    )
 }
 
-export default LayoutPrivate
+export default LayoutPublic

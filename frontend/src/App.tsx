@@ -1,9 +1,24 @@
-import React from 'react'
+import { StrictMode } from 'react';
+import { WagmiProvider } from 'wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { NextUIProvider } from '@nextui-org/react';
+import { RouterProvider } from 'react-router-dom';
 
-function App() {
+import { config } from '@/wagmi'
+import { router } from '@/routers'
+
+const queryClient = new QueryClient()
+
+export default function App() {
   return (
-    <div>App</div>
-  )
+    <StrictMode>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <NextUIProvider navigate={router.navigate}>
+            <RouterProvider router={router} />
+          </NextUIProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </StrictMode>
+  );
 }
-
-export default App

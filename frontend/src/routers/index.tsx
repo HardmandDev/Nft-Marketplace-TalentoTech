@@ -11,6 +11,9 @@ import MyNftsPage from "@/pages/myNfts/MyNftsPage";
 import PurchaseHistoryPage from "@/pages/purchaseHistory/PurchaseHistoryPage";
 import SettingsPage from "@/pages/settings/SettingsPage";
 
+import PrivateRoute from "@/components/PrivateRoute";
+import AppRedirect from "@/components/AppRedirect";
+
 export const router = createBrowserRouter([
     {
         path: ConstantsRoutes.HOME,
@@ -24,30 +27,34 @@ export const router = createBrowserRouter([
         ]
     },
     {
-        path: ConstantsRoutes.APP, // Prefijo común para rutas autenticadas
+        path: ConstantsRoutes.APP, // Ruta para redirigir a dashboard o inicio
+        element: <AppRedirect />, // Usamos el componente de redirección
+    },
+    {
+        path: ConstantsRoutes.APP, // Todas las rutas bajo /app
         element: <LayoutPrivate />,
         errorElement: <NotFoundPage />,
         children: [
             {
-                path: ConstantsRoutes.DASHBOARD, // Panel de usuario
+                path: ConstantsRoutes.DASHBOARD,
                 index: true,
-                element: <Dashboard />
+                element: <PrivateRoute element={<Dashboard />} />
             },
             {
-                path: ConstantsRoutes.MARKETPLACE, // Marketplace
-                element: <MarketplacePage />
+                path: ConstantsRoutes.MARKETPLACE,
+                element: <PrivateRoute element={<MarketplacePage />} />
             },
             {
-                path: ConstantsRoutes.MY_NFTS, // Mis NFTs
-                element: <MyNftsPage />
+                path: ConstantsRoutes.MY_NFTS,
+                element: <PrivateRoute element={<MyNftsPage />} />
             },
             {
-                path: ConstantsRoutes.PURCHASE_HISTORY, // Historial de compras
-                element: <PurchaseHistoryPage />
+                path: ConstantsRoutes.PURCHASE_HISTORY,
+                element: <PrivateRoute element={<PurchaseHistoryPage />} />
             },
             {
-                path: ConstantsRoutes.SETTINGS, // Ajustes
-                element: <SettingsPage />
+                path: ConstantsRoutes.SETTINGS,
+                element: <PrivateRoute element={<SettingsPage />} />
             }
         ]
     }
