@@ -8,10 +8,10 @@ const LandingPage = () => {
 
     return (
         <div style={{ textAlign: "center", marginTop: "50px" }}>
-            <h1>Bienvenido Marketplace de NFTs de Talento Tech Bogotá</h1>
+            <h1>Bienvenido al Marketplace de NFTs de Talento Tech Bogotá</h1>
 
             <p className="mt-4">Realizado por: Armando Velasquez</p>
-            <p className="mb-4">en el programa de Talento Tech Bogotá</p>
+            <p className="mb-4">en el bootcamp de Talento Tech Bogotá Blockchain Avanzado</p>
 
             {!isConnected ? (
                 <>

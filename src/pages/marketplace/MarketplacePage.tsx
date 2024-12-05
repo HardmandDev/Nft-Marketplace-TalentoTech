@@ -6,7 +6,7 @@ import { ethers } from 'ethers';
 
 const MarketplacePage: React.FC = () => {
     const { data: price } = usePrice();
-    const formatPrice = price && typeof price === 'string' ? ethers.formatEther(price) : "0";
+    const formatPrice = price && typeof price === "bigint" ? ethers.formatEther(price) : "0";
 
     const { data, error, isLoading } = useTokenURI();
     const [tokenImages, setTokenImages] = useState<{ image: string, name: string, tokenId: number }[]>([]);
@@ -19,35 +19,40 @@ const MarketplacePage: React.FC = () => {
             const fetchImages = async () => {
                 const imageData = await Promise.all(
                     data.map(async (item: any) => {
-                        const jsonUrl = item.result; // URL del JSON
-                        const response = await fetch(jsonUrl); // Solicitar el JSON
-                        const jsonData = await response.json(); // Convertir el JSON en un objeto
+                        const jsonUrl = item.result;
+                        const response = await fetch(jsonUrl);
+                        const jsonData = await response.json();
                         return {
-                            image: jsonData.image, // URL de la imagen
-                            name: jsonData.name, // Nombre del NFT
-                            tokenId: item.tokenId, // ID del token
+                            image: jsonData.image,
+                            name: jsonData.name,
+                            tokenId: item.tokenId,
                         };
                     })
                 );
                 setTokenImages(imageData);
             };
-
+    
             fetchImages();
         }
     }, [data]);
 
     const handleBuyNFT = async (tokenId: number) => {
+        if (tokenId === undefined || tokenId === null) {
+            console.error('Token ID no es válido:', tokenId);
+            return;
+        }
+    
         setIsBuying(true);
-        // Usamos BigInt de JS para cero
-        const correctPrice = price && typeof price === 'string' ? ethers.parseEther(price) : 0n;
         try {
-            await buyNFT(tokenId, correctPrice);  // Pasa el precio como BigInt
+            const correctPrice = price && typeof price === "bigint" ? price : 0n;
+            await buyNFT(tokenId, correctPrice);
         } catch (error) {
             console.error('Error al comprar NFT:', error);
         } finally {
             setIsBuying(false);
         }
     };
+    
 
     if (isLoading) return <div>Cargando...</div>;
     if (error) return <div>Error: {error.message}</div>;
@@ -68,7 +73,7 @@ const MarketplacePage: React.FC = () => {
                             />
                             <p className='text-white'>{item.name}</p>
                             <Button
-                                onClick={() => handleBuyNFT(item.tokenId)}
+                                onClick={() => handleBuyNFT(index + 1)}
                                 disabled={isBuying}
                                 color="secondary"
                                 variant="flat"

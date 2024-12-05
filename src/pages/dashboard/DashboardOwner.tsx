@@ -22,14 +22,14 @@ const DashboardOwner: React.FC = () => {
     <header className="dashboard-header" style={{ textAlign: 'center', marginTop: '20px' }}>
 
       <div className="flex justify-center items-center gap-4 my-4">
-        <p className="text-lg font-bold">Establecer precio del NFT:</p>
+        <p className="text-lg font-bold">Establecer precio de los NFTs:</p>
         <Input
           type="number"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           min={0}
           step={1}
-          className="w-32" // Ajusta el tamaño del input si es necesario
+          className="w-32"
         />
         <Button onClick={handleSetPrice}>Establecer Precio</Button>
       </div>

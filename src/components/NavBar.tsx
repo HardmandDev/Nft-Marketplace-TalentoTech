@@ -4,15 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import ConstantRoutes from '@/constants/ConstantsRoutes'
 
 const NavBar = () => {
-    const { isConnected, address } = useAccount(); // Estado de conexión de la wallet
+    const { isConnected, address } = useAccount();
     const { disconnect } = useDisconnect();
-    const { connectors, connect } = useConnect();  // Para conectar la wallet
+    const { connectors, connect } = useConnect();
     const navigate = useNavigate();
 
-    // Función para desconectar y redirigir al inicio
     const handleDisconnect = () => {
-        disconnect();  // Desconectar wallet
-        navigate(ConstantRoutes.HOME);  // Redirigir al inicio
+        disconnect();
+        navigate(ConstantRoutes.HOME);
         console.log('Desconectado')
     };
 
@@ -22,7 +21,6 @@ const NavBar = () => {
                 <Link href={ConstantRoutes.HOME} className="font-bold text-inherit">NFTs Talento Tech!</Link>
             </NavbarBrand>
             <NavbarContent justify="end">
-                {/* Mostrar las opciones de menú solo si el usuario está conectado */}
                 {isConnected ? (
                     <>
                         <NavbarItem>
