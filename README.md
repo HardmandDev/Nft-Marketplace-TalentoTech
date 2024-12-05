@@ -1,50 +1,35 @@
-# React + TypeScript + Vite
+# Marketplace de NFTs Talento Tech Bogotá
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A continuación encontrarán la información necesaria que les permitirá probar el sitio web en producción. Los requisitos para poder interactuar correctamente son:
 
-Currently, two official plugins are available:
+- Tener una wallet, por ejemplo MetaMask, con ETH en la testnet de Sepolia. En caso de no tener ETH de prueba, pueden solicitarlo en el siguiente enlace: [Faucet de Sepolia](https://cloud.google.com/application/web3/faucet/ethereum/sepolia).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Visitar cualquiera de estos dos enlaces donde está alojado el proyecto:
+  - [Opción centralizada con Vercel](https://nft-marketplace-talento-tech.vercel.app/)
+  - [Opción descentralizada con Fleek e IPFS](https://marketplace-talento-tech.on-fleek.app/)
 
-## Expanding the ESLint configuration
+## Requisitos para clonar el proyecto
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- Contar con NodeJS con una versión superior a la 18.
+- Conocimientos básicos de la terminal.
 
-- Configure the top-level `parserOptions` property like this:
+Ejecuten los siguientes comandos:
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+git clone https://github.com/HardmandDev/Nft-Marketplace-TalentoTech.git
+```
+```bash
+cd Nft-Marketplace-TalentoTech
+```
+```bash
+npm install
+```
+```bash
+npm run dev
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+**NOTA:** No se requieren variables de entorno. El proyecto está desarrollado con Wagmi y Viem, los cuales funcionan muy diferente a ethers. Por ejemplo, cuando se da clic en "Desconectar wallet", realmente se desconecta incluso si se recarga el sitio web.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+En los archivos /src/hook/*, está la dirección del Smart Contract en caso de querer cambiarlo.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+En la raíz del proyecto encontrarán la carpeta contracts con los archivos empleados para realizar las pruebas al Smart Contract con Foundry.
