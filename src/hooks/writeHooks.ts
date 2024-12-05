@@ -1,7 +1,10 @@
 import { useWriteContract } from "wagmi";
 import contractABI from '@/contracts/TalentoTechAbi.json';
 
-const contractAddress = '0x850A514822A81f2Ed0fEa5dDcc3A703E9D3d7345';
+const smartContract = {
+    address: import.meta.env.VITE_CONTRACT_ADDRESS || '0x850A514822A81f2Ed0fEa5dDcc3A703E9D3d7345',
+    abi: contractABI,
+  } as const;
 
 //✅ Si el usuario es el propietario, permite retirar el saldo acumulado de las ventas de NFTs.
 export const useWithdraw = () => {
@@ -9,8 +12,7 @@ export const useWithdraw = () => {
 
     const withdraw = async () => {
         writeContract({
-            abi: contractABI,
-            address: contractAddress,
+            ...smartContract,
             functionName: "withdraw",
         });
     };
@@ -24,8 +26,7 @@ export const useSetPrice = () => {
 
     const setPrice = async (newPrice: bigint) => {
         writeContract({
-            abi: contractABI,
-            address: contractAddress,
+            ...smartContract,
             functionName: "setPrice",
             args: [newPrice],
         });
@@ -43,8 +44,7 @@ export const useBuyNFT = () => {
         console.log("Price:", price);
 
         await writeContract({
-            abi: contractABI,
-            address: contractAddress,
+            ...smartContract,
             functionName: "buyNFT",
             args: [tokenId], 
             value: price,

@@ -1,18 +1,15 @@
 import { useReadContract, useReadContracts } from "wagmi";
 import contractABI from '@/contracts/TalentoTechAbi.json';
 
-const contractAddress = '0x850A514822A81f2Ed0fEa5dDcc3A703E9D3d7345';
-
 const smartContract = {
-  address: '0x850A514822A81f2Ed0fEa5dDcc3A703E9D3d7345',
+  address: import.meta.env.VITE_CONTRACT_ADDRESS || '0x850A514822A81f2Ed0fEa5dDcc3A703E9D3d7345',
   abi: contractABI,
-} as const
+} as const;
 
 //✅ Obtener el owner del contrato
 export const useOwner = () => {
   return useReadContract({
-    address: contractAddress,
-    abi: contractABI,
+    ...smartContract,
     functionName: "owner",
   });
 };
@@ -20,8 +17,7 @@ export const useOwner = () => {
 //✅ Obtener el precio de los NFT
 export const usePrice = () => {
   return useReadContract({
-    address: contractAddress,
-    abi: contractABI,
+    ...smartContract,
     functionName: "getPrice",
   });
 };
