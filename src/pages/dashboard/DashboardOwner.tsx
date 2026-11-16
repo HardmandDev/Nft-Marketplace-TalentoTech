@@ -30,15 +30,13 @@ const DashboardOwner: React.FC = () => {
       <div className="flex justify-center items-start gap-4 my-4">
         <p className="text-lg font-bold">Establecer precio de los NFTs (ETH):</p>
         <Input
-          type="number"
+          type="text"
           inputMode="decimal"
           value={value}
           onChange={(e) => {
             setValue(e.target.value);
             setError('');
           }}
-          min={0}
-          step="any"
           isInvalid={error !== ''}
           errorMessage={error}
           className="w-40"
