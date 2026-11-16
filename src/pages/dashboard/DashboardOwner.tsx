@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSetPrice, useWithdraw } from '@/hooks/writeHooks';
 import { Button, Input } from '@nextui-org/react'
-import { ethers } from 'ethers';
+import { parseEther } from 'viem';
 
 const DashboardOwner: React.FC = () => {
   const [value, setValue] = useState('');
@@ -10,7 +10,7 @@ const DashboardOwner: React.FC = () => {
   const { withdraw } = useWithdraw();
 
   const handleSetPrice = () => {
-    const priceInWei = ethers.parseUnits(value, 'ether');
+    const priceInWei = parseEther(value);
     setPrice(priceInWei);
   };
 
