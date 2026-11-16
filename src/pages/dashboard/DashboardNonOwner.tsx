@@ -1,69 +1,38 @@
-import { useEffect, useState } from 'react';
-import { useTokenURI, useOwnerOf } from '@/hooks/readHooks';
 import { useAccount } from 'wagmi';
-
-interface OwnerData {
-  result: string;
-}
+import { useNfts } from '@/hooks/useNfts';
+import { getErrorMessage } from '@/utils/errors';
 
 const DashboardNonOwner: React.FC = () => {
   const { address } = useAccount();
-  const { data: tokenData, error: tokenError, isLoading: tokenLoading } = useTokenURI();
-  const { data: ownerData, error: ownerError, isLoading: ownerLoading } = useOwnerOf();
-  const [tokens, setTokens] = useState<any[]>([]);
+  const { nfts, isLoading, error } = useNfts();
 
-  useEffect(() => {
-    if (tokenData && ownerData) {
+  if (isLoading) return <div>Cargando...</div>;
+  // Un refetch fallido no debe tapar los NFTs que ya estaban cargados.
+  if (error && nfts.length === 0) return <div>Error: {getErrorMessage(error)}</div>;
 
-      const fetchImages = async () => {
-        try {
-          const filteredTokens = tokenData.filter((_, index) => {
-            const owner = ownerData[index] as OwnerData;
-
-            return owner.result.toLowerCase() === address?.toLowerCase();
-          });
-
-          if (filteredTokens.length === 0) {
-            console.warn("No se encontraron tokens para este propietario");
-          }
-
-          const tokensWithImages = await Promise.all(
-            filteredTokens.map(async (item: any) => {
-              const jsonUrl = item.result;
-              const response = await fetch(jsonUrl);
-              const jsonData = await response.json();
-              return {
-                name: jsonData.name,
-                imageUrl: jsonData.image,
-              };
-            })
-          );
-
-          setTokens(tokensWithImages);
-        } catch (err) {
-          console.error('Error al obtener las imágenes:', err);
-        }
-      };
-
-      fetchImages();
-    }
-  }, [tokenData, ownerData, address]);
-
-  if (tokenLoading || ownerLoading) return <div>Cargando...</div>;
-  if (tokenError || ownerError) return <div>Error: {tokenError?.message || ownerError?.message}</div>;
+  const myNfts = nfts.filter((nft) => address?.toLowerCase() === nft.owner.toLowerCase());
 
   return (
     <div>
       <h2 className='text-2xl font-bold my-4'>Tus NFTs:</h2>
-      {tokens.length > 0 ? (
+      {myNfts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tokens.map((token, index) => (
-            <div key={index} className="bg-white p-1 rounded-lg shadow-lg flex flex-col items-center">
-              <img
-                src={token.imageUrl}
-                className="w-full h-40 object-cover rounded-t-lg"
-              />
-              <p className='text-black'>{token.name}</p>
+          {myNfts.map((nft) => (
+            <div key={nft.tokenId} className="bg-white p-1 rounded-lg shadow-lg flex flex-col items-center">
+              {nft.image ? (
+                <img
+                  src={nft.image}
+                  alt={nft.name ?? `NFT ${nft.tokenId}`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-40 object-cover rounded-t-lg"
+                />
+              ) : (
+                <div className="w-full h-40 rounded-t-lg bg-gray-200 flex items-center justify-center text-gray-600 text-sm">
+                  {nft.metadataLoading ? 'Cargando imagen...' : 'Imagen no disponible'}
+                </div>
+              )}
+              <p className='text-black'>{nft.name ?? `NFT #${nft.tokenId}`}</p>
             </div>
           ))}
         </div>

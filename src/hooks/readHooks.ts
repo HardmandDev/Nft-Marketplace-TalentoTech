@@ -1,10 +1,7 @@
-import { useReadContract, useReadContracts } from "wagmi";
-import contractABI from '@/contracts/TalentoTechAbi.json';
-
-const smartContract = {
-  address: import.meta.env.VITE_CONTRACT_ADDRESS || '0x850A514822A81f2Ed0fEa5dDcc3A703E9D3d7345',
-  abi: contractABI,
-} as const;
+import { useMemo } from 'react';
+import { useReadContract, useReadContracts } from 'wagmi';
+import type { Address } from 'viem';
+import { MAX_TOKEN_ID, smartContract } from '@/config/contract';
 
 //✅ Obtener el owner del contrato
 export const useOwner = () => {
@@ -22,128 +19,42 @@ export const usePrice = () => {
   });
 };
 
-//✅ Obtener la URL de cada NFT.
-export const useTokenURI = () => {
-  return useReadContracts({
-    contracts: [
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [1],
-      },
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [2],
-      },
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [3],
-      },
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [4],
-      },
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [5],
-      },
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [6],
-      },
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [7],
-      },
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [8],
-      },
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [9],
-      },
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [10],
-      },
-      {
-        ...smartContract,
-        functionName: "tokenURI",
-        args: [11],
-      },
-    ]
-  });
-};
+export interface TokenInfo {
+  tokenId: number;
+  owner: Address;
+  tokenURI: string;
+}
 
-//✅ Obtener el comprador de un NFT
-export const useOwnerOf = () => {
-  return useReadContracts({
-    contracts: [
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [1],
-      },
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [2],
-      },
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [3],
-      },
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [4],
-      },
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [5],
-      },
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [6],
-      },
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [7],
-      },
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [8],
-      },
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [9],
-      },
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [10],
-      },
-      {
-        ...smartContract,
-        functionName: "ownerOf",
-        args: [11],
-      },
-    ],
-  });
+const TOKEN_IDS = Array.from({ length: MAX_TOKEN_ID }, (_, i) => i + 1);
+
+const TOKEN_CALLS = TOKEN_IDS.flatMap((tokenId) => [
+  { ...smartContract, functionName: "ownerOf", args: [BigInt(tokenId)] },
+  { ...smartContract, functionName: "tokenURI", args: [BigInt(tokenId)] },
+]);
+
+//✅ Obtener los NFTs que existen (dueño actual y URL de metadatos) en una sola consulta multicall.
+// ownerOf revierte para los IDs no minteados; esos resultados se descartan.
+export const useTokens = () => {
+  const query = useReadContracts({ contracts: TOKEN_CALLS });
+  const { data } = query;
+
+  const tokens = useMemo<TokenInfo[]>(() => {
+    if (!data) return [];
+    return TOKEN_IDS.flatMap((tokenId, index) => {
+      const owner = data[index * 2];
+      const uri = data[index * 2 + 1];
+      if (
+        owner?.status === 'success' && typeof owner.result === 'string' &&
+        uri?.status === 'success' && typeof uri.result === 'string'
+      ) {
+        return [{ tokenId, owner: owner.result as Address, tokenURI: uri.result }];
+      }
+      return [];
+    });
+  }, [data]);
+
+  // Si existe el último ID consultado puede haber más NFTs fuera del rango.
+  const maybeTruncated = tokens.some((token) => token.tokenId === MAX_TOKEN_ID);
+
+  return { ...query, tokens, maybeTruncated };
 };

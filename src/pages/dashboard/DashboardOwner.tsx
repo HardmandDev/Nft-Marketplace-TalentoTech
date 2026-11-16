@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useSetPrice, useWithdraw } from '@/hooks/writeHooks';
 import { Button, Input } from '@nextui-org/react'
 import { ethers } from 'ethers';
+import TxStatus from '@/components/TxStatus';
 
 const DashboardOwner: React.FC = () => {
   const [value, setValue] = useState('');
 
-  const { setPrice } = useSetPrice();
-  const { withdraw } = useWithdraw();
+  const { setPrice, ...setPriceTx } = useSetPrice();
+  const { withdraw, ...withdrawTx } = useWithdraw();
 
   const handleSetPrice = () => {
     const priceInWei = ethers.parseUnits(value, 'ether');
@@ -33,6 +34,7 @@ const DashboardOwner: React.FC = () => {
         />
         <Button onClick={handleSetPrice}>Establecer Precio</Button>
       </div>
+      <TxStatus {...setPriceTx} successMessage="Precio actualizado." />
 
       <div>
 
@@ -42,6 +44,7 @@ const DashboardOwner: React.FC = () => {
         >
           Retirar Fondos
         </Button>
+        <TxStatus {...withdrawTx} successMessage="Fondos retirados." />
       </div>
     </header>
   );

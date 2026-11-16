@@ -1,55 +1,73 @@
-import { useWriteContract } from "wagmi";
-import contractABI from '@/contracts/TalentoTechAbi.json';
+import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { smartContract } from '@/config/contract';
 
-const smartContract = {
-    address: import.meta.env.VITE_CONTRACT_ADDRESS || '0x850A514822A81f2Ed0fEa5dDcc3A703E9D3d7345',
-    abi: contractABI,
-  } as const;
+interface TxParams {
+  functionName: string;
+  args?: readonly unknown[];
+  value?: bigint;
+}
+
+// Envía una transacción y expone su ciclo de vida: firma en la wallet, confirmación y resultado.
+// Al confirmarse se invalidan las lecturas del contrato para que la UI muestre el estado nuevo.
+const useContractTx = () => {
+  const queryClient = useQueryClient();
+  const { writeContractAsync, data: hash, isPending, error: writeError } = useWriteContract();
+  const receipt = useWaitForTransactionReceipt({ hash });
+
+  const reverted = receipt.data?.status === 'reverted';
+  const isSuccess = receipt.isSuccess && !reverted;
+
+  const isFinished = isSuccess || reverted;
+
+  // También si revierte: el estado de la cadena pudo cambiar (por ejemplo, otro usuario compró antes).
+  useEffect(() => {
+    if (isFinished) {
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === 'readContract' || query.queryKey[0] === 'readContracts',
+      });
+    }
+  }, [isFinished, queryClient]);
+
+  const send = async (params: TxParams) => {
+    try {
+      await writeContractAsync({ ...smartContract, ...params });
+    } catch {
+      // El error (por ejemplo, rechazo en la wallet) queda disponible en `error`.
+    }
+  };
+
+  const error = writeError ?? receipt.error ?? (reverted ? new Error('El contrato revirtió la transacción.') : null);
+
+  return { send, hash, isPending, isConfirming: receipt.isLoading, isSuccess, error };
+};
 
 //✅ Si el usuario es el propietario, permite retirar el saldo acumulado de las ventas de NFTs.
 export const useWithdraw = () => {
-    const { writeContract } = useWriteContract();
+  const { send, ...tx } = useContractTx();
 
-    const withdraw = async () => {
-        writeContract({
-            ...smartContract,
-            functionName: "withdraw",
-        });
-    };
+  const withdraw = () => send({ functionName: "withdraw" });
 
-    return { withdraw };
+  return { withdraw, ...tx };
 };
 
 //✅ Si el usuario es el propietario, permite establecer el precio de TODOS los NFTs.
 export const useSetPrice = () => {
-    const { writeContract } = useWriteContract();
+  const { send, ...tx } = useContractTx();
 
-    const setPrice = async (newPrice: bigint) => {
-        writeContract({
-            ...smartContract,
-            functionName: "setPrice",
-            args: [newPrice],
-        });
-    };
+  const setPrice = (newPrice: bigint) =>
+    send({ functionName: "setPrice", args: [newPrice] });
 
-    return { setPrice };
+  return { setPrice, ...tx };
 };
 
 //✅ Permite comprar un NFT.
 export const useBuyNFT = () => {
-    const { writeContract } = useWriteContract();
+  const { send, ...tx } = useContractTx();
 
-    const buyNFT = async (tokenId: number, price: bigint) => {
-        console.log("Buying NFT with tokenId:", tokenId);
-        console.log("Price:", price);
+  const buyNFT = (tokenId: number, price: bigint) =>
+    send({ functionName: "buyNFT", args: [BigInt(tokenId)], value: price });
 
-        await writeContract({
-            ...smartContract,
-            functionName: "buyNFT",
-            args: [tokenId], 
-            value: price,
-        });
-    };
-
-    return { buyNFT };
+  return { buyNFT, ...tx };
 };
