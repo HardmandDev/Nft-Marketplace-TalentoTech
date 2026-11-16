@@ -1,91 +1,85 @@
-import { useEffect, useState } from 'react';
-import { usePrice, useTokenURI } from '@/hooks/readHooks';
+import { useState } from 'react';
+import { useAccount } from 'wagmi';
+import { Button } from '@nextui-org/react';
+import { formatEther } from 'viem';
+import { usePrice } from '@/hooks/readHooks';
+import { useNfts } from '@/hooks/useNfts';
 import { useBuyNFT } from '@/hooks/writeHooks';
-import { Button } from '@nextui-org/button';
-import { ethers } from 'ethers';
+import { getErrorMessage } from '@/utils/errors';
 
 const MarketplacePage: React.FC = () => {
+    const { address } = useAccount();
     const { data: price } = usePrice();
-    const formatPrice = price && typeof price === "bigint" ? ethers.formatEther(price) : "0";
+    const priceLoaded = typeof price === 'bigint';
+    const formattedPrice = priceLoaded ? formatEther(price) : '...';
 
-    const { data, error, isLoading } = useTokenURI();
-    const [tokenImages, setTokenImages] = useState<{ image: string, name: string, tokenId: number }[]>([]);
+    const { nfts, isLoading, error } = useNfts();
+    const { buyNFT, isPending, isConfirming, isSuccess, error: buyError } = useBuyNFT();
+    const [buyingTokenId, setBuyingTokenId] = useState<number | null>(null);
+    const isBusy = isPending || isConfirming;
 
-    const [isBuying, setIsBuying] = useState(false);
-    const { buyNFT } = useBuyNFT();
-
-    useEffect(() => {
-        if (data) {
-            const fetchImages = async () => {
-                const imageData = await Promise.all(
-                    data.map(async (item: any) => {
-                        const jsonUrl = item.result;
-                        const response = await fetch(jsonUrl);
-                        const jsonData = await response.json();
-                        return {
-                            image: jsonData.image,
-                            name: jsonData.name,
-                            tokenId: item.tokenId,
-                        };
-                    })
-                );
-                setTokenImages(imageData);
-            };
-    
-            fetchImages();
-        }
-    }, [data]);
-
-    const handleBuyNFT = async (tokenId: number) => {
-        if (tokenId === undefined || tokenId === null) {
-            console.error('Token ID no es válido:', tokenId);
-            return;
-        }
-    
-        setIsBuying(true);
-        try {
-            const correctPrice = price && typeof price === "bigint" ? price : 0n;
-            await buyNFT(tokenId, correctPrice);
-        } catch (error) {
-            console.error('Error al comprar NFT:', error);
-        } finally {
-            setIsBuying(false);
-        }
+    const handleBuyNFT = (tokenId: number) => {
+        if (!priceLoaded) return;
+        setBuyingTokenId(tokenId);
+        buyNFT(tokenId, price);
     };
-    
 
     if (isLoading) return <div>Cargando...</div>;
-    if (error) return <div>Error: {error.message}</div>;
+    if (error) return <div>Error: {getErrorMessage(error)}</div>;
 
     return (
         <div>
             <h1 className="text-2xl font-bold my-4">Listado completo de NFTs</h1>
-            <p className="text-lg mb-4">El precio de cada uno de los NFTs es: ${formatPrice} ETH</p>
+            <p className="text-lg mb-4">El precio de cada uno de los NFTs es: {formattedPrice} ETH</p>
 
-            {tokenImages.length > 0 ? (
+            {buyError && (
+                <p role="alert" className="text-danger mb-4">
+                    No se pudo completar la compra: {getErrorMessage(buyError)}
+                </p>
+            )}
+            {isSuccess && <p role="status" className="text-success mb-4">¡Compra confirmada!</p>}
+
+            {nfts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {tokenImages.map((item, index) => (
-                        <div key={index} className="bg-slate-800 p-1 rounded-lg shadow-lg flex flex-col items-center">
-                            <img
-                                src={item.image}
-                                alt={`NFT ${item.tokenId}`}
-                                className="w-full h-40 object-cover rounded-t-lg"
-                            />
-                            <p className='text-white'>{item.name}</p>
-                            <Button
-                                onClick={() => handleBuyNFT(index + 1)}
-                                disabled={isBuying}
-                                color="secondary"
-                                variant="flat"
-                                className="mt-2"
-                            >
-                                {isBuying ? "Procesando..." : "Comprar"}
-                            </Button>
-                        </div>
-                    ))}
+                    {nfts.map((nft) => {
+                        const isMine = address?.toLowerCase() === nft.owner.toLowerCase();
+                        const isThisBuying = isBusy && buyingTokenId === nft.tokenId;
+
+                        return (
+                            <div key={nft.tokenId} className="bg-slate-800 p-1 rounded-lg shadow-lg flex flex-col items-center">
+                                {nft.image ? (
+                                    <img
+                                        src={nft.image}
+                                        alt={nft.name ?? `NFT ${nft.tokenId}`}
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer"
+                                        className="w-full h-40 object-cover rounded-t-lg"
+                                    />
+                                ) : (
+                                    <div className="w-full h-40 rounded-t-lg bg-slate-700 flex items-center justify-center text-slate-300 text-sm">
+                                        {nft.metadataLoading ? 'Cargando imagen...' : 'Imagen no disponible'}
+                                    </div>
+                                )}
+                                <p className='text-white'>{nft.name ?? `NFT #${nft.tokenId}`}</p>
+                                {isMine ? (
+                                    <p className="text-slate-300 text-sm mt-2">Es tuyo</p>
+                                ) : (
+                                    <Button
+                                        onClick={() => handleBuyNFT(nft.tokenId)}
+                                        isDisabled={isBusy || !priceLoaded}
+                                        color="secondary"
+                                        variant="flat"
+                                        className="mt-2"
+                                    >
+                                        {isThisBuying ? "Procesando..." : "Comprar"}
+                                    </Button>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             ) : (
-                <p>No se encontraron imágenes.</p>
+                <p>No se encontraron NFTs.</p>
             )}
         </div>
     );

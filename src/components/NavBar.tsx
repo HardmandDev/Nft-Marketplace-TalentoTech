@@ -12,7 +12,6 @@ const NavBar = () => {
     const handleDisconnect = () => {
         disconnect();
         navigate(ConstantRoutes.HOME);
-        console.log('Desconectado')
     };
 
     return (

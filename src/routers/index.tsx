@@ -26,17 +26,16 @@ export const router = createBrowserRouter([
         ]
     },
     {
-        path: ConstantsRoutes.APP, // Ruta para redirigir a dashboard o inicio
-        element: <AppRedirect />, // Usamos el componente de redirección
-    },
-    {
         path: ConstantsRoutes.APP, // Todas las rutas bajo /app
         element: <LayoutPrivate />,
         errorElement: <NotFoundPage />,
         children: [
             {
+                index: true, // /app redirige a dashboard o inicio según la conexión
+                element: <AppRedirect />
+            },
+            {
                 path: ConstantsRoutes.DASHBOARD,
-                index: true,
                 element: <PrivateRoute element={<Dashboard />} />
             },
             {
@@ -52,5 +51,9 @@ export const router = createBrowserRouter([
                 element: <PrivateRoute element={<SettingsPage />} />
             }
         ]
+    },
+    {
+        path: '*',
+        element: <NotFoundPage />
     }
 ]);

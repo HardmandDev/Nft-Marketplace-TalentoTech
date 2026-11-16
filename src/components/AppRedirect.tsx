@@ -4,10 +4,15 @@ import ConstantsRoutes from '@/constants/ConstantsRoutes';
 
 // Componente para redirigir al usuario según su estado de conexión
 const AppRedirect = () => {
-  const { isConnected } = useAccount();
+  const { status } = useAccount();
+
+  // Esperar a que wagmi termine de reconectar antes de decidir a dónde ir
+  if (status === 'connecting' || status === 'reconnecting') {
+    return <div className="p-4">Conectando wallet...</div>;
+  }
 
   // Si no está conectado, redirige a la página de inicio
-  if (!isConnected) {
+  if (status === 'disconnected') {
     return <Navigate to={ConstantsRoutes.HOME} replace />;
   }
 
