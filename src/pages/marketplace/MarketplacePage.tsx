@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { usePrice, useTokenURI } from '@/hooks/readHooks';
 import { useBuyNFT } from '@/hooks/writeHooks';
-import { Button } from '@nextui-org/button';
-import { ethers } from 'ethers';
+import { Button } from '@nextui-org/react';
+import { formatEther } from 'viem';
 
 const MarketplacePage: React.FC = () => {
     const { data: price } = usePrice();
-    const formatPrice = price && typeof price === "bigint" ? ethers.formatEther(price) : "0";
+    const formatPrice = price && typeof price === "bigint" ? formatEther(price) : "0";
 
     const { data, error, isLoading } = useTokenURI();
     const [tokenImages, setTokenImages] = useState<{ image: string, name: string, tokenId: number }[]>([]);
