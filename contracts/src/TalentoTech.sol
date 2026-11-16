@@ -116,6 +116,11 @@ contract TalentoTech is ERC721, Ownable2Step {
         require(ok, "Fallo el envio de Ether");
     }
 
+    // Renunciar dejaría mint() y setPrice() inutilizables para siempre
+    function renounceOwnership() public view override onlyOwner {
+        revert("Renunciar a la propiedad esta deshabilitado");
+    }
+
     // Cualquier transferencia (compra o transferFrom) retira el NFT de la venta
     function _update(
         address to,
