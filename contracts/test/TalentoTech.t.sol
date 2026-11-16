@@ -73,6 +73,7 @@ contract TalentoTechTest is Test {
         // Simulamos una compra
         uint256 tokenId = 1;
         vm.deal(user, 1 ether);
+        vm.prank(user); // La compra la hace el usuario, no el contrato de test
         talentoTech.buyNFT{value: price}(tokenId);
 
         // Verificamos el balance antes del retiro
