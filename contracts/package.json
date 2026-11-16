@@ -1,0 +1,9 @@
+{
+  "name": "nft-marketplace-talento-tech-contracts",
+  "private": true,
+  "description": "Dependencias de Solidity para Foundry (OpenZeppelin y forge-std)",
+  "devDependencies": {
+    "@openzeppelin/contracts": "5.1.0",
+    "forge-std": "https://github.com/foundry-rs/forge-std/archive/refs/tags/v1.9.4.tar.gz"
+  }
+}

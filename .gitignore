@@ -1,4 +1,6 @@
 .env
+.env.*
+!.env.example
 
 # Logs
 logs
@@ -27,3 +29,8 @@ dist-ssr
 
 # Million Lint
 .million
+
+# Foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/

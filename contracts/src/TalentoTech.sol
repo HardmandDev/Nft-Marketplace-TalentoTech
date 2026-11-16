@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-// import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-// import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-// import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-
-import {ERC721} from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
-import {Ownable} from "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
-import {Strings} from "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract TalentoTech is ERC721, Ownable {
     uint256 private _nextTokenId;
