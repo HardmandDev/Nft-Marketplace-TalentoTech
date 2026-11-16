@@ -19,13 +19,16 @@ const useContractTx = () => {
   const reverted = receipt.data?.status === 'reverted';
   const isSuccess = receipt.isSuccess && !reverted;
 
+  const isFinished = isSuccess || reverted;
+
+  // También si revierte: el estado de la cadena pudo cambiar (por ejemplo, otro usuario compró antes).
   useEffect(() => {
-    if (isSuccess) {
+    if (isFinished) {
       queryClient.invalidateQueries({
         predicate: (query) => query.queryKey[0] === 'readContract' || query.queryKey[0] === 'readContracts',
       });
     }
-  }, [isSuccess, queryClient]);
+  }, [isFinished, queryClient]);
 
   const send = async (params: TxParams) => {
     try {

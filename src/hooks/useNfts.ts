@@ -4,7 +4,7 @@ import { fetchMetadata } from '@/utils/metadata';
 
 //✅ NFTs existentes con su nombre e imagen. Los metadatos se cachean y un fallo en uno no afecta a los demás.
 export const useNfts = () => {
-  const { tokens, isLoading, error } = useTokens();
+  const { tokens, isLoading, error, maybeTruncated } = useTokens();
 
   const metadata = useQueries({
     queries: tokens.map((token) => ({
@@ -23,5 +23,5 @@ export const useNfts = () => {
     metadataFailed: metadata[index]?.isError ?? false,
   }));
 
-  return { nfts, isLoading, error };
+  return { nfts, isLoading, error, maybeTruncated };
 };

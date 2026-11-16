@@ -7,7 +7,8 @@ const DashboardNonOwner: React.FC = () => {
   const { nfts, isLoading, error } = useNfts();
 
   if (isLoading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {getErrorMessage(error)}</div>;
+  // Un refetch fallido no debe tapar los NFTs que ya estaban cargados.
+  if (error && nfts.length === 0) return <div>Error: {getErrorMessage(error)}</div>;
 
   const myNfts = nfts.filter((nft) => address?.toLowerCase() === nft.owner.toLowerCase());
 

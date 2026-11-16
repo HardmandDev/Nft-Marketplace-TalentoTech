@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { Button } from '@nextui-org/react';
 import { formatEther } from 'viem';
+import { MAX_TOKEN_ID } from '@/config/contract';
 import { usePrice } from '@/hooks/readHooks';
 import { useNfts } from '@/hooks/useNfts';
 import { useBuyNFT } from '@/hooks/writeHooks';
 import { getErrorMessage } from '@/utils/errors';
+import TxStatus from '@/components/TxStatus';
 
 const MarketplacePage: React.FC = () => {
     const { address } = useAccount();
@@ -13,7 +15,7 @@ const MarketplacePage: React.FC = () => {
     const priceLoaded = typeof price === 'bigint';
     const formattedPrice = priceLoaded ? formatEther(price) : '...';
 
-    const { nfts, isLoading, error } = useNfts();
+    const { nfts, isLoading, error, maybeTruncated } = useNfts();
     const { buyNFT, isPending, isConfirming, isSuccess, error: buyError } = useBuyNFT();
     const [buyingTokenId, setBuyingTokenId] = useState<number | null>(null);
     const isBusy = isPending || isConfirming;
@@ -25,19 +27,25 @@ const MarketplacePage: React.FC = () => {
     };
 
     if (isLoading) return <div>Cargando...</div>;
-    if (error) return <div>Error: {getErrorMessage(error)}</div>;
+    // Un refetch fallido no debe tapar los NFTs que ya estaban cargados.
+    if (error && nfts.length === 0) return <div>Error: {getErrorMessage(error)}</div>;
 
     return (
         <div>
             <h1 className="text-2xl font-bold my-4">Listado completo de NFTs</h1>
             <p className="text-lg mb-4">El precio de cada uno de los NFTs es: {formattedPrice} ETH</p>
 
-            {buyError && (
-                <p role="alert" className="text-danger mb-4">
-                    No se pudo completar la compra: {getErrorMessage(buyError)}
-                </p>
+            {error && <p role="alert" className="text-danger mb-4">No se pudo actualizar el listado: {getErrorMessage(error)}</p>}
+            {maybeTruncated && (
+                <p role="status" className="mb-4">Se muestran los primeros {MAX_TOKEN_ID} NFTs; puede haber más.</p>
             )}
-            {isSuccess && <p role="status" className="text-success mb-4">¡Compra confirmada!</p>}
+            <TxStatus
+                isPending={isPending}
+                isConfirming={isConfirming}
+                isSuccess={isSuccess}
+                error={buyError}
+                successMessage="¡Compra confirmada!"
+            />
 
             {nfts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

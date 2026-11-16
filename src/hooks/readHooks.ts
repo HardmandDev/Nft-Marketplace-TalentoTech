@@ -53,5 +53,8 @@ export const useTokens = () => {
     });
   }, [data]);
 
-  return { ...query, tokens };
+  // Si existe el último ID consultado puede haber más NFTs fuera del rango.
+  const maybeTruncated = tokens.some((token) => token.tokenId === MAX_TOKEN_ID);
+
+  return { ...query, tokens, maybeTruncated };
 };

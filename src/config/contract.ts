@@ -5,7 +5,7 @@ const DEFAULT_CONTRACT_ADDRESS = '0x850A514822A81f2Ed0fEa5dDcc3A703E9D3d7345';
 
 const envAddress: string | undefined = import.meta.env.VITE_CONTRACT_ADDRESS;
 
-// Si la variable existe pero está mal escrita, falla de forma visible en lugar de usar otro contrato sin avisar.
+// Si la variable existe pero está mal escrita, la app no arranca (error en consola) en lugar de usar otro contrato sin avisar.
 if (envAddress && !isAddress(envAddress)) {
   throw new Error('VITE_CONTRACT_ADDRESS no es una dirección válida.');
 }
