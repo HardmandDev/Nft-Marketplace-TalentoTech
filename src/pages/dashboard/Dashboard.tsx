@@ -8,7 +8,11 @@ const Dashboard: React.FC = () => {
   const { address, status } = useAccount();
   const { data: owner } = useOwner();
 
-  const isOwner = status === 'connected' && address === owner;
+  // Las direcciones pueden venir con distinta capitalización (checksum o minúsculas).
+  const isOwner =
+    status === 'connected' &&
+    typeof owner === 'string' &&
+    address?.toLowerCase() === owner.toLowerCase();
 
   return (
     <>

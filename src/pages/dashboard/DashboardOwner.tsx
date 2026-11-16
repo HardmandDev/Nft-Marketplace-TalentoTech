@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import { useSetPrice, useWithdraw } from '@/hooks/writeHooks';
 import { Button, Input } from '@nextui-org/react'
-import { ethers } from 'ethers';
+import { parsePriceInput } from '@/utils/price';
 
 const DashboardOwner: React.FC = () => {
   const [value, setValue] = useState('');
+  const [error, setError] = useState('');
 
   const { setPrice } = useSetPrice();
   const { withdraw } = useWithdraw();
 
   const handleSetPrice = () => {
-    const priceInWei = ethers.parseUnits(value, 'ether');
-    setPrice(priceInWei);
+    const result = parsePriceInput(value);
+    if ('error' in result) {
+      setError(result.error);
+      return;
+    }
+    setError('');
+    setPrice(result.wei);
   };
 
   const handleWithdraw = () => {
@@ -21,15 +27,19 @@ const DashboardOwner: React.FC = () => {
   return (
     <header className="dashboard-header" style={{ textAlign: 'center', marginTop: '20px' }}>
 
-      <div className="flex justify-center items-center gap-4 my-4">
-        <p className="text-lg font-bold">Establecer precio de los NFTs:</p>
+      <div className="flex justify-center items-start gap-4 my-4">
+        <p className="text-lg font-bold">Establecer precio de los NFTs (ETH):</p>
         <Input
-          type="number"
+          type="text"
+          inputMode="decimal"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
-          min={0}
-          step={1}
-          className="w-32"
+          onChange={(e) => {
+            setValue(e.target.value);
+            setError('');
+          }}
+          isInvalid={error !== ''}
+          errorMessage={error}
+          className="w-40"
         />
         <Button onClick={handleSetPrice}>Establecer Precio</Button>
       </div>
